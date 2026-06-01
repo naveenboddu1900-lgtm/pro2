@@ -1,0 +1,26 @@
+{
+  "name": "pro2",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Week 1 Day 1-2 foundation for a real-time collaborative workspace agile management tool.",
+  "type": "module",
+  "scripts": {
+    "start": "node server/src/server.js",
+    "dev": "node --watch server/src/server.js",
+    "check": "node --check server/src/server.js && node --check server/src/app.js && node --check server/src/db.js && node --check server/src/models/User.js && node --check server/src/models/Workspace.js && node --check server/src/models/Board.js && node --check server/src/models/List.js && node --check server/src/models/Card.js && node --check server/src/models/index.js"
+  },
+  "keywords": [
+    "agile",
+    "kanban",
+    "workspace",
+    "mongoose",
+    "week-1"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.9.5"
+  }
+}
