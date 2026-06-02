@@ -24,6 +24,11 @@ const userSchema = new Schema(
       trim: true,
       default: ""
     },
+    passwordHash: {
+      type: String,
+      required: true,
+      select: false
+    },
     role: {
       type: String,
       enum: ["admin", "member"],
