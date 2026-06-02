@@ -1,8 +1,12 @@
 # Pro2 - Real-Time Collaborative Workspace
 
-Week 1 Day 1-2 implementation for **Project 2: Real-Time Collaborative Workspace (Agile Management Tool)**.
+Week 1 implementation for **Project 2: Real-Time Collaborative Workspace (Agile Management Tool)**.
 
-This checkpoint only defines the core data foundation:
+## Completed Scope
+
+### Day 1-2
+
+Defined the core data foundation:
 
 - Users
 - Workspaces
@@ -10,7 +14,19 @@ This checkpoint only defines the core data foundation:
 - Lists
 - Cards
 
-Later timeline items such as authentication, workspace invitations, Kanban APIs, drag-and-drop, Socket.io synchronization, Redis caching, search, and notifications are intentionally not implemented yet.
+### Day 2-3
+
+Started the authentication and workspace workflow:
+
+- User registration
+- User login
+- JWT-style signed session token
+- Authenticated profile endpoint
+- Workspace creation
+- Workspace listing for the signed-in user
+- Workspace invitation by existing user email
+
+Later timeline items such as Kanban list/card CRUD, drag-and-drop, Socket.io synchronization, Redis caching, search, and notifications are intentionally not implemented yet.
 
 ## Tech Stack
 
@@ -43,6 +59,22 @@ The server exposes a health endpoint at:
 
 ```text
 GET /health
+```
+
+### Auth Endpoints
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+GET /api/auth/me
+```
+
+### Workspace Endpoints
+
+```text
+GET /api/workspaces
+POST /api/workspaces
+POST /api/workspaces/:workspaceId/invitations
 ```
 
 ## Validation
