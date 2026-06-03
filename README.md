@@ -26,6 +26,18 @@ Started the authentication and workspace workflow:
 - Workspace listing for the signed-in user
 - Workspace invitation by existing user email
 
+### Day 6-7
+
+Built the initial frontend workspace experience:
+
+- React/Vite client scaffold
+- Sidebar navigation
+- Workspace switcher
+- Board overview layout
+- Workspace settings panel
+- Member management list
+- Responsive mobile layout
+
 Later timeline items such as Kanban list/card CRUD, drag-and-drop, Socket.io synchronization, Redis caching, search, and notifications are intentionally not implemented yet.
 
 ## Tech Stack
@@ -59,6 +71,12 @@ The server exposes a health endpoint at:
 
 ```text
 GET /health
+```
+
+Run the frontend:
+
+```bash
+npm run client:dev
 ```
 
 ### Auth Endpoints
