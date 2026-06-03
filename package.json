@@ -7,6 +7,8 @@
   "scripts": {
     "start": "node server/src/server.js",
     "dev": "node --watch server/src/server.js",
+    "client:dev": "vite --host 0.0.0.0 --config client/vite.config.js",
+    "client:build": "vite build --config client/vite.config.js",
     "check": "node --check server/src/server.js && node --check server/src/app.js && node --check server/src/db.js && node --check server/src/utils/password.js && node --check server/src/utils/token.js && node --check server/src/middleware/auth.js && node --check server/src/routes/auth.js && node --check server/src/routes/workspaces.js && node --check server/src/models/User.js && node --check server/src/models/Workspace.js && node --check server/src/models/Board.js && node --check server/src/models/List.js && node --check server/src/models/Card.js && node --check server/src/models/index.js"
   },
   "keywords": [
@@ -21,6 +23,13 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "lucide-react": "^0.468.0",
     "mongoose": "^8.9.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }
