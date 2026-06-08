@@ -40,6 +40,17 @@ Built the initial frontend workspace experience:
 
 Later timeline items such as Kanban list/card CRUD, drag-and-drop, Socket.io synchronization, Redis caching, search, and notifications are intentionally not implemented yet.
 
+### Week 2 Day 1-3
+
+Implemented the first Kanban REST API layer:
+
+- Board creation and listing
+- List create, read, update, and archive
+- Card create, read, update, move between lists, and archive
+- Workspace membership checks for board/list/card access
+
+Drag-and-drop interactions, optimistic UI updates, Socket.io synchronization, Redis caching, search, and notifications are intentionally not implemented yet.
+
 ## Tech Stack
 
 - Node.js
@@ -93,6 +104,21 @@ GET /api/auth/me
 GET /api/workspaces
 POST /api/workspaces
 POST /api/workspaces/:workspaceId/invitations
+```
+
+### Board, List, and Card Endpoints
+
+```text
+GET /api/boards
+POST /api/boards
+GET /api/boards/:boardId/lists
+POST /api/boards/:boardId/lists
+PATCH /api/boards/:boardId/lists/:listId
+DELETE /api/boards/:boardId/lists/:listId
+GET /api/boards/:boardId/cards
+POST /api/boards/:boardId/cards
+PATCH /api/boards/:boardId/cards/:cardId
+DELETE /api/boards/:boardId/cards/:cardId
 ```
 
 ## Validation
