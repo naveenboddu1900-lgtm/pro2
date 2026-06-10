@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import {
   Bell,
   ChevronDown,
@@ -8,7 +10,7 @@ import {
   Settings,
   Users
 } from "lucide-react";
-import { workspace } from "./data.js";
+import { initialKanban, workspace } from "./data.js";
 
 const navItems = [
   { label: "Boards", icon: LayoutDashboard, active: true },
@@ -71,25 +73,135 @@ function Topbar() {
   );
 }
 
-function BoardPreview() {
+function reorderList(list, startIndex, endIndex) {
+  const nextCardIds = Array.from(list.cardIds);
+  const [movedCard] = nextCardIds.splice(startIndex, 1);
+  nextCardIds.splice(endIndex, 0, movedCard);
+
+  return {
+    ...list,
+    cardIds: nextCardIds
+  };
+}
+
+function moveCard(sourceList, destinationList, source, destination) {
+  const sourceCardIds = Array.from(sourceList.cardIds);
+  const destinationCardIds = Array.from(destinationList.cardIds);
+  const [movedCard] = sourceCardIds.splice(source.index, 1);
+
+  destinationCardIds.splice(destination.index, 0, movedCard);
+
+  return {
+    [sourceList.id]: {
+      ...sourceList,
+      cardIds: sourceCardIds
+    },
+    [destinationList.id]: {
+      ...destinationList,
+      cardIds: destinationCardIds
+    }
+  };
+}
+
+function KanbanBoard() {
+  const [kanban, setKanban] = useState(initialKanban);
+
+  function handleDragEnd(result) {
+    const { destination, source } = result;
+
+    if (!destination) {
+      return;
+    }
+
+    if (destination.droppableId === source.droppableId && destination.index === source.index) {
+      return;
+    }
+
+    setKanban((current) => {
+      const sourceList = current.lists[source.droppableId];
+      const destinationList = current.lists[destination.droppableId];
+
+      if (sourceList === destinationList) {
+        return {
+          ...current,
+          lists: {
+            ...current.lists,
+            [sourceList.id]: reorderList(sourceList, source.index, destination.index)
+          }
+        };
+      }
+
+      return {
+        ...current,
+        lists: {
+          ...current.lists,
+          ...moveCard(sourceList, destinationList, source, destination)
+        }
+      };
+    });
+  }
+
   return (
-    <section className="board-grid" aria-label="Boards">
-      {workspace.boards.map((board) => (
-        <article className="board-card" key={board.name}>
-          <div>
-            <h2>{board.name}</h2>
-            <p>{board.description}</p>
-          </div>
-          <div className="list-strip">
-            {board.lists.map((list) => (
-              <div className="list-tile" key={list.title}>
-                <span>{list.title}</span>
-                <strong>{list.count}</strong>
-              </div>
-            ))}
-          </div>
-        </article>
-      ))}
+    <section className="kanban-section" aria-label="Sprint board">
+      <div className="section-header">
+        <div>
+          <h2>Sprint Board</h2>
+          <p>Cards can be reordered inside a list or moved across workflow columns.</p>
+        </div>
+        <span className="sync-chip">Local state</span>
+      </div>
+
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="kanban-board">
+          {kanban.listOrder.map((listId) => {
+            const list = kanban.lists[listId];
+
+            return (
+              <Droppable droppableId={list.id} key={list.id}>
+                {(provided, snapshot) => (
+                  <article
+                    className={snapshot.isDraggingOver ? "kanban-list is-over" : "kanban-list"}
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                  >
+                    <div className="kanban-list-header">
+                      <h3>{list.title}</h3>
+                      <span>{list.cardIds.length}</span>
+                    </div>
+
+                    <div className="kanban-cards">
+                      {list.cardIds.map((cardId, index) => {
+                        const card = kanban.cards[cardId];
+
+                        return (
+                          <Draggable draggableId={card.id} index={index} key={card.id}>
+                            {(cardProvided, cardSnapshot) => (
+                              <div
+                                className={cardSnapshot.isDragging ? "task-card is-dragging" : "task-card"}
+                                ref={cardProvided.innerRef}
+                                {...cardProvided.draggableProps}
+                                {...cardProvided.dragHandleProps}
+                              >
+                                <strong>{card.title}</strong>
+                                <div className="card-meta">
+                                  <span>{card.priority}</span>
+                                  <span>{card.points} pts</span>
+                                  <span>{card.owner}</span>
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {provided.placeholder}
+                    </div>
+                  </article>
+                )}
+              </Droppable>
+            );
+          })}
+        </div>
+      </DragDropContext>
     </section>
   );
 }
@@ -100,7 +212,7 @@ function WorkspaceSettings() {
       <div className="settings-header">
         <div>
           <h2>Workspace Settings</h2>
-          <p>{workspace.members} members · {workspace.visibility} visibility · {workspace.plan} plan</p>
+          <p>{workspace.members} members - {workspace.visibility} visibility - {workspace.plan} plan</p>
         </div>
         <button className="secondary-button" type="button">Save changes</button>
       </div>
@@ -153,15 +265,15 @@ export function App() {
         <div className="content">
           <section className="workspace-heading">
             <div>
-              <p className="eyebrow">Week 1 · Day 6-7</p>
+              <p className="eyebrow">Week 2 - Day 4-6</p>
               <h1>{workspace.name}</h1>
             </div>
             <div className="status-pills" aria-label="Workspace summary">
               <span>{workspace.members} members</span>
-              <span>{workspace.boards.length} boards</span>
+              <span>{initialKanban.listOrder.length} lists</span>
             </div>
           </section>
-          <BoardPreview />
+          <KanbanBoard />
           <WorkspaceSettings />
         </div>
       </main>
