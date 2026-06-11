@@ -250,7 +250,8 @@ h2 {
 }
 
 .board-card,
-.settings-panel {
+.settings-panel,
+.kanban-section {
   background: #ffffff;
   border: 1px solid #dce3ea;
   border-radius: 8px;
@@ -291,6 +292,131 @@ h2 {
 
 .list-tile strong {
   font-size: 24px;
+}
+
+.kanban-section {
+  display: grid;
+  gap: 18px;
+  overflow: hidden;
+  padding: 18px;
+}
+
+.section-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.section-header p {
+  color: #6f7d8a;
+  margin: 4px 0 0;
+}
+
+.sync-chip {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 999px;
+  color: #047857;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.kanban-board {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.kanban-list {
+  background: #f8fafc;
+  border: 1px solid #dce3ea;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-rows: auto minmax(220px, 1fr);
+  min-height: 330px;
+  padding: 12px;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.kanban-list.is-over {
+  background: #eef7f7;
+  border-color: #36a3a6;
+}
+
+.kanban-list-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.kanban-list-header h3 {
+  font-size: 15px;
+  margin: 0;
+}
+
+.kanban-list-header span {
+  align-items: center;
+  background: #e5ebf0;
+  border-radius: 999px;
+  color: #52606d;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  height: 24px;
+  justify-content: center;
+  min-width: 24px;
+  padding: 0 8px;
+}
+
+.kanban-cards {
+  display: grid;
+  gap: 10px;
+  min-height: 220px;
+  align-content: start;
+}
+
+.task-card {
+  background: #ffffff;
+  border: 1px solid #dce3ea;
+  border-radius: 8px;
+  box-shadow: 0 1px 1px rgba(23, 32, 42, 0.04);
+  display: grid;
+  gap: 12px;
+  min-height: 104px;
+  padding: 12px;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.task-card.is-dragging {
+  border-color: #2563eb;
+  box-shadow: 0 14px 28px rgba(23, 32, 42, 0.18);
+  transform: rotate(1deg);
+}
+
+.task-card strong {
+  line-height: 1.35;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-meta span {
+  background: #f4f6f8;
+  border: 1px solid #e5ebf0;
+  border-radius: 999px;
+  color: #52606d;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 8px;
 }
 
 .settings-panel {
@@ -406,6 +532,10 @@ h2 {
   .settings-grid {
     grid-template-columns: 1fr;
   }
+
+  .kanban-board {
+    grid-template-columns: repeat(4, 260px);
+  }
 }
 
 @media (max-width: 640px) {
@@ -422,7 +552,8 @@ h2 {
   }
 
   .workspace-heading,
-  .settings-header {
+  .settings-header,
+  .section-header {
     align-items: stretch;
     flex-direction: column;
   }

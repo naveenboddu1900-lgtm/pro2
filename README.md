@@ -49,7 +49,17 @@ Implemented the first Kanban REST API layer:
 - Card create, read, update, move between lists, and archive
 - Workspace membership checks for board/list/card access
 
-Drag-and-drop interactions, optimistic UI updates, Socket.io synchronization, Redis caching, search, and notifications are intentionally not implemented yet.
+### Week 2 Day 4-6
+
+Implemented the frontend Kanban interaction layer:
+
+- Maintained React state for board lists and cards
+- Drag-and-drop card reordering inside the same list
+- Drag-and-drop card movement across lists
+- Visual drop targets and dragging states
+- Stable responsive board columns
+
+Socket.io synchronization, Redis caching, search, and notifications are intentionally not implemented yet.
 
 ## Tech Stack
 
