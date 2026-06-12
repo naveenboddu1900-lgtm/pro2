@@ -59,6 +59,16 @@ Implemented the frontend Kanban interaction layer:
 - Visual drop targets and dragging states
 - Stable responsive board columns
 
+### Week 2 Day 7
+
+Optimized local UI state before server confirmation:
+
+- Reducer-based Kanban state updates
+- Optimistic card move operations
+- Pending move status indicators
+- Derived board metrics for card count and points
+- Simulated server confirmation path for future API integration
+
 Socket.io synchronization, Redis caching, search, and notifications are intentionally not implemented yet.
 
 ## Tech Stack
@@ -137,4 +147,4 @@ DELETE /api/boards/:boardId/cards/:cardId
 npm run check
 ```
 
-This verifies JavaScript syntax for the Week 1 Day 1-2 source files.
+This verifies JavaScript syntax for the backend source files.

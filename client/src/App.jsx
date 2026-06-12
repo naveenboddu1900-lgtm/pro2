@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useReducer } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import {
   Bell,
@@ -11,6 +11,7 @@ import {
   Users
 } from "lucide-react";
 import { initialKanban, workspace } from "./data.js";
+import { createMoveOperation, getBoardMetrics, kanbanReducer } from "./kanbanState.js";
 
 const navItems = [
   { label: "Boards", icon: LayoutDashboard, active: true },
@@ -73,38 +74,23 @@ function Topbar() {
   );
 }
 
-function reorderList(list, startIndex, endIndex) {
-  const nextCardIds = Array.from(list.cardIds);
-  const [movedCard] = nextCardIds.splice(startIndex, 1);
-  nextCardIds.splice(endIndex, 0, movedCard);
-
-  return {
-    ...list,
-    cardIds: nextCardIds
-  };
-}
-
-function moveCard(sourceList, destinationList, source, destination) {
-  const sourceCardIds = Array.from(sourceList.cardIds);
-  const destinationCardIds = Array.from(destinationList.cardIds);
-  const [movedCard] = sourceCardIds.splice(source.index, 1);
-
-  destinationCardIds.splice(destination.index, 0, movedCard);
-
-  return {
-    [sourceList.id]: {
-      ...sourceList,
-      cardIds: sourceCardIds
-    },
-    [destinationList.id]: {
-      ...destinationList,
-      cardIds: destinationCardIds
-    }
-  };
+function formatSyncTime(value) {
+  return new Intl.DateTimeFormat("en", {
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(value));
 }
 
 function KanbanBoard() {
-  const [kanban, setKanban] = useState(initialKanban);
+  const [kanban, dispatch] = useReducer(kanbanReducer, initialKanban);
+  const metrics = useMemo(() => getBoardMetrics(kanban), [kanban]);
+  const syncLabel = kanban.pendingOperations.length > 0 ? "Sync pending" : `Synced ${formatSyncTime(kanban.lastSyncedAt)}`;
+
+  function confirmMove(operationId) {
+    window.setTimeout(() => {
+      dispatch({ type: "confirm-move", operationId });
+    }, 450);
+  }
 
   function handleDragEnd(result) {
     const { destination, source } = result;
@@ -117,28 +103,13 @@ function KanbanBoard() {
       return;
     }
 
-    setKanban((current) => {
-      const sourceList = current.lists[source.droppableId];
-      const destinationList = current.lists[destination.droppableId];
+    const operation = createMoveOperation(result);
 
-      if (sourceList === destinationList) {
-        return {
-          ...current,
-          lists: {
-            ...current.lists,
-            [sourceList.id]: reorderList(sourceList, source.index, destination.index)
-          }
-        };
-      }
-
-      return {
-        ...current,
-        lists: {
-          ...current.lists,
-          ...moveCard(sourceList, destinationList, source, destination)
-        }
-      };
+    dispatch({
+      type: "optimistic-move",
+      operation
     });
+    confirmMove(operation.id);
   }
 
   return (
@@ -146,9 +117,13 @@ function KanbanBoard() {
       <div className="section-header">
         <div>
           <h2>Sprint Board</h2>
-          <p>Cards can be reordered inside a list or moved across workflow columns.</p>
+          <p>Card moves update instantly while confirmation is pending.</p>
         </div>
-        <span className="sync-chip">Local state</span>
+        <div className="board-metrics" aria-label="Board state">
+          <span>{metrics.totalCards} cards</span>
+          <span>{metrics.totalPoints} pts</span>
+          <span className={kanban.pendingOperations.length > 0 ? "sync-chip pending" : "sync-chip"}>{syncLabel}</span>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -172,12 +147,17 @@ function KanbanBoard() {
                     <div className="kanban-cards">
                       {list.cardIds.map((cardId, index) => {
                         const card = kanban.cards[cardId];
+                        const isPending = kanban.pendingOperations.some((operation) => operation.cardId === card.id);
 
                         return (
                           <Draggable draggableId={card.id} index={index} key={card.id}>
                             {(cardProvided, cardSnapshot) => (
                               <div
-                                className={cardSnapshot.isDragging ? "task-card is-dragging" : "task-card"}
+                                className={[
+                                  "task-card",
+                                  cardSnapshot.isDragging ? "is-dragging" : "",
+                                  isPending ? "is-pending" : ""
+                                ].filter(Boolean).join(" ")}
                                 ref={cardProvided.innerRef}
                                 {...cardProvided.draggableProps}
                                 {...cardProvided.dragHandleProps}
@@ -265,7 +245,7 @@ export function App() {
         <div className="content">
           <section className="workspace-heading">
             <div>
-              <p className="eyebrow">Week 2 - Day 4-6</p>
+              <p className="eyebrow">Week 2 - Day 7</p>
               <h1>{workspace.name}</h1>
             </div>
             <div className="status-pills" aria-label="Workspace summary">

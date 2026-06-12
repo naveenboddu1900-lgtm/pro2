@@ -113,5 +113,8 @@ export const initialKanban = {
       priority: "Low",
       points: 1
     }
-  }
+  },
+  pendingOperations: [],
+  lastSyncedAt: "2026-06-12T09:00:00.000+05:30",
+  lastMove: null
 };

@@ -313,6 +313,15 @@ h2 {
   margin: 4px 0 0;
 }
 
+.board-metrics {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.board-metrics span,
 .sync-chip {
   background: #ecfdf5;
   border: 1px solid #a7f3d0;
@@ -322,6 +331,18 @@ h2 {
   font-weight: 800;
   padding: 7px 10px;
   white-space: nowrap;
+}
+
+.board-metrics span:not(.sync-chip) {
+  background: #f4f6f8;
+  border-color: #dce3ea;
+  color: #52606d;
+}
+
+.sync-chip.pending {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
 }
 
 .kanban-board {
@@ -397,6 +418,10 @@ h2 {
   border-color: #2563eb;
   box-shadow: 0 14px 28px rgba(23, 32, 42, 0.18);
   transform: rotate(1deg);
+}
+
+.task-card.is-pending {
+  border-color: #fed7aa;
 }
 
 .task-card strong {
