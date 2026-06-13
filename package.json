@@ -2,14 +2,14 @@
   "name": "pro2",
   "version": "0.1.0",
   "private": false,
-  "description": "Week 1-2 foundation for a real-time collaborative workspace agile management tool.",
+  "description": "Week 1-3 foundation for a real-time collaborative workspace agile management tool.",
   "type": "module",
   "scripts": {
     "start": "node server/src/server.js",
     "dev": "node --watch server/src/server.js",
     "client:dev": "vite --host 0.0.0.0 --config client/vite.config.js",
     "client:build": "vite build --config client/vite.config.js",
-    "check": "node --check server/src/server.js && node --check server/src/app.js && node --check server/src/db.js && node --check server/src/utils/password.js && node --check server/src/utils/token.js && node --check server/src/utils/boardAccess.js && node --check server/src/middleware/auth.js && node --check server/src/routes/auth.js && node --check server/src/routes/workspaces.js && node --check server/src/routes/boards.js && node --check server/src/routes/lists.js && node --check server/src/routes/cards.js && node --check server/src/models/User.js && node --check server/src/models/Workspace.js && node --check server/src/models/Board.js && node --check server/src/models/List.js && node --check server/src/models/Card.js && node --check server/src/models/index.js && node --check client/src/kanbanState.js"
+    "check": "node --check server/src/server.js && node --check server/src/app.js && node --check server/src/db.js && node --check server/src/socket.js && node --check server/src/utils/password.js && node --check server/src/utils/token.js && node --check server/src/utils/boardAccess.js && node --check server/src/middleware/auth.js && node --check server/src/routes/auth.js && node --check server/src/routes/workspaces.js && node --check server/src/routes/boards.js && node --check server/src/routes/lists.js && node --check server/src/routes/cards.js && node --check server/src/models/User.js && node --check server/src/models/Workspace.js && node --check server/src/models/Board.js && node --check server/src/models/List.js && node --check server/src/models/Card.js && node --check server/src/models/index.js && node --check client/src/kanbanState.js"
   },
   "keywords": [
     "agile",
@@ -25,7 +25,8 @@
     "express": "^4.21.2",
     "@hello-pangea/dnd": "^17.0.0",
     "lucide-react": "^0.468.0",
-    "mongoose": "^8.9.5"
+    "mongoose": "^8.9.5",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
