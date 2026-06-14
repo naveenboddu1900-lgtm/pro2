@@ -69,7 +69,17 @@ Optimized local UI state before server confirmation:
 - Derived board metrics for card count and points
 - Simulated server confirmation path for future API integration
 
-Socket.io synchronization, Redis caching, search, and notifications are intentionally not implemented yet.
+### Week 3 Day 1-2
+
+Started real-time synchronization infrastructure:
+
+- Socket.io server attached to the HTTP server
+- JWT-style authenticated WebSocket handshakes
+- Safe connection and disconnection tracking
+- Board room join and leave events
+- Presence events for board collaboration rooms
+
+Broadcasting card changes, typing indicators, comment threads, Redis caching, search, and notifications are intentionally not implemented yet.
 
 ## Tech Stack
 
@@ -77,6 +87,7 @@ Socket.io synchronization, Redis caching, search, and notifications are intentio
 - Express.js
 - MongoDB
 - Mongoose
+- Socket.io
 
 ## Data Hierarchy
 
