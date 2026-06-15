@@ -13,7 +13,7 @@ export function createApp() {
   app.get("/health", (_req, res) => {
     res.json({
       status: "ok",
-      scope: "week-2-day-1-3",
+      scope: "week-3-day-3-5",
       models: ["User", "Workspace", "Board", "List", "Card"]
     });
   });

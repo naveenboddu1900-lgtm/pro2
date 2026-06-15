@@ -3,6 +3,7 @@ import { config } from "./config.js";
 import { Board, User } from "./models/index.js";
 import { verifyToken } from "./utils/token.js";
 import { findAccessibleBoard } from "./utils/boardAccess.js";
+import { getBoardRoomName } from "./utils/realtime.js";
 
 const activeConnections = new Map();
 
@@ -67,7 +68,7 @@ async function joinBoardRoom(socket, boardId, acknowledge) {
       return acknowledgeSafely(acknowledge, { ok: false, message: "Board not found or access denied" });
     }
 
-    const roomName = `board:${board._id.toString()}`;
+    const roomName = getBoardRoomName(board._id);
     await socket.join(roomName);
 
     socket.to(roomName).emit("presence:user-joined", {
@@ -90,7 +91,7 @@ async function leaveBoardRoom(socket, boardId, acknowledge) {
       return acknowledgeSafely(acknowledge, { ok: false, message: "Board not found" });
     }
 
-    const roomName = `board:${board._id.toString()}`;
+    const roomName = getBoardRoomName(board._id);
     await socket.leave(roomName);
 
     socket.to(roomName).emit("presence:user-left", {

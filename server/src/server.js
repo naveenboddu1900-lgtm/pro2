@@ -11,7 +11,7 @@ async function startServer() {
   const app = createApp();
   const httpServer = createServer(app);
 
-  registerSocketServer(httpServer);
+  app.locals.io = registerSocketServer(httpServer);
 
   httpServer.listen(config.port, () => {
     console.log(`Pro2 server listening on port ${config.port}`);
