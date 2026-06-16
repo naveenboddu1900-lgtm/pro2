@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import { Card, List } from "../models/index.js";
 import { findAccessibleBoard, findEditableBoard } from "../utils/boardAccess.js";
+import { emitBoardEvent } from "../utils/realtime.js";
 
 export const cardsRouter = Router({ mergeParams: true });
 
@@ -23,6 +24,10 @@ function serializeCard(card) {
     createdAt: card.createdAt,
     updatedAt: card.updatedAt
   };
+}
+
+function getChangedFields(updates) {
+  return Object.keys(updates).filter((field) => updates[field] !== undefined);
 }
 
 cardsRouter.get("/", async (req, res, next) => {
@@ -79,7 +84,10 @@ cardsRouter.post("/", async (req, res, next) => {
       position: Number.isInteger(position) ? position : nextPosition
     });
 
-    return res.status(201).json({ card: serializeCard(card) });
+    const payload = { card: serializeCard(card) };
+    emitBoardEvent(req, board._id, "card:created", payload);
+
+    return res.status(201).json(payload);
   } catch (error) {
     return next(error);
   }
@@ -102,6 +110,12 @@ cardsRouter.patch("/:cardId", async (req, res, next) => {
       }
     }
 
+    const previousCard = await Card.findOne({ _id: req.params.cardId, board: board._id });
+
+    if (!previousCard) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
     if (req.body.listId !== undefined) {
       const targetList = await List.findOne({ _id: req.body.listId, board: board._id, archivedAt: null });
 
@@ -122,7 +136,16 @@ cardsRouter.patch("/:cardId", async (req, res, next) => {
       return res.status(404).json({ message: "Card not found" });
     }
 
-    return res.json({ card: serializeCard(card) });
+    const payload = {
+      card: serializeCard(card),
+      previousList: previousCard.list,
+      changedFields: getChangedFields(updates)
+    };
+    const eventName = updates.list !== undefined || updates.position !== undefined ? "card:moved" : "card:updated";
+
+    emitBoardEvent(req, board._id, eventName, payload);
+
+    return res.json(payload);
   } catch (error) {
     return next(error);
   }
@@ -146,7 +169,10 @@ cardsRouter.delete("/:cardId", async (req, res, next) => {
       return res.status(404).json({ message: "Card not found" });
     }
 
-    return res.json({ card: serializeCard(card) });
+    const payload = { card: serializeCard(card) };
+    emitBoardEvent(req, board._id, "card:archived", payload);
+
+    return res.json(payload);
   } catch (error) {
     return next(error);
   }
