@@ -79,7 +79,17 @@ Started real-time synchronization infrastructure:
 - Board room join and leave events
 - Presence events for board collaboration rooms
 
-Broadcasting card changes, typing indicators, comment threads, Redis caching, search, and notifications are intentionally not implemented yet.
+### Week 3 Day 3-5
+
+Broadcasted board-specific card changes:
+
+- Card creation events to connected board-room users
+- Card movement events when list or position changes
+- Card update events for non-movement edits
+- Card archive events after soft deletion
+- Shared realtime event names for frontend listeners
+
+Typing indicators, comment threads, Redis caching, search, and notifications are intentionally not implemented yet.
 
 ## Tech Stack
 
