@@ -20,9 +20,21 @@ function serializeCard(card) {
     assignees: card.assignees,
     dueDate: card.dueDate,
     checklist: card.checklist,
+    comments: card.comments?.filter((comment) => !comment.deletedAt).map(serializeComment) || [],
     archivedAt: card.archivedAt,
     createdAt: card.createdAt,
     updatedAt: card.updatedAt
+  };
+}
+
+function serializeComment(comment) {
+  return {
+    id: comment._id,
+    author: comment.author,
+    body: comment.body,
+    editedAt: comment.editedAt,
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt
   };
 }
 
@@ -47,6 +59,159 @@ cardsRouter.get("/", async (req, res, next) => {
     const cards = await Card.find(query).sort({ list: 1, position: 1 });
 
     return res.json({ cards: cards.map(serializeCard) });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+cardsRouter.get("/:cardId/comments", async (req, res, next) => {
+  try {
+    const board = await findAccessibleBoard(req.params.boardId, req.user._id);
+
+    if (!board) {
+      return res.status(404).json({ message: "Board not found or access denied" });
+    }
+
+    const card = await Card.findOne({ _id: req.params.cardId, board: board._id });
+
+    if (!card) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
+    const comments = card.comments
+      .filter((comment) => !comment.deletedAt)
+      .sort((first, second) => first.createdAt - second.createdAt)
+      .map(serializeComment);
+
+    return res.json({ comments });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+cardsRouter.post("/:cardId/comments", async (req, res, next) => {
+  try {
+    const { body } = req.body;
+    const board = await findEditableBoard(req.params.boardId, req.user._id);
+
+    if (!board) {
+      return res.status(404).json({ message: "Board not found or access denied" });
+    }
+
+    if (!body || !body.trim()) {
+      return res.status(400).json({ message: "Comment body is required" });
+    }
+
+    const card = await Card.findOne({ _id: req.params.cardId, board: board._id });
+
+    if (!card) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
+    card.comments.push({
+      author: req.user._id,
+      body
+    });
+
+    await card.save();
+
+    const comment = serializeComment(card.comments[card.comments.length - 1]);
+    const payload = {
+      cardId: card._id,
+      comment
+    };
+
+    emitBoardEvent(req, board._id, "comment:created", payload);
+
+    return res.status(201).json(payload);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+cardsRouter.patch("/:cardId/comments/:commentId", async (req, res, next) => {
+  try {
+    const { body } = req.body;
+    const board = await findEditableBoard(req.params.boardId, req.user._id);
+
+    if (!board) {
+      return res.status(404).json({ message: "Board not found or access denied" });
+    }
+
+    if (!body || !body.trim()) {
+      return res.status(400).json({ message: "Comment body is required" });
+    }
+
+    const card = await Card.findOne({ _id: req.params.cardId, board: board._id });
+
+    if (!card) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
+    const comment = card.comments.id(req.params.commentId);
+
+    if (!comment || comment.deletedAt) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (!comment.author.equals(req.user._id)) {
+      return res.status(403).json({ message: "Only the author can edit this comment" });
+    }
+
+    comment.body = body;
+    comment.editedAt = new Date();
+
+    await card.save();
+
+    const payload = {
+      cardId: card._id,
+      comment: serializeComment(comment)
+    };
+
+    emitBoardEvent(req, board._id, "comment:updated", payload);
+
+    return res.json(payload);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+cardsRouter.delete("/:cardId/comments/:commentId", async (req, res, next) => {
+  try {
+    const board = await findEditableBoard(req.params.boardId, req.user._id);
+
+    if (!board) {
+      return res.status(404).json({ message: "Board not found or access denied" });
+    }
+
+    const card = await Card.findOne({ _id: req.params.cardId, board: board._id });
+
+    if (!card) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
+    const comment = card.comments.id(req.params.commentId);
+
+    if (!comment || comment.deletedAt) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (!comment.author.equals(req.user._id)) {
+      return res.status(403).json({ message: "Only the author can delete this comment" });
+    }
+
+    comment.deletedAt = new Date();
+
+    await card.save();
+
+    const payload = {
+      cardId: card._id,
+      commentId: comment._id
+    };
+
+    emitBoardEvent(req, board._id, "comment:deleted", payload);
+
+    return res.json(payload);
   } catch (error) {
     return next(error);
   }
