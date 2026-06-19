@@ -89,7 +89,17 @@ Broadcasted board-specific card changes:
 - Card archive events after soft deletion
 - Shared realtime event names for frontend listeners
 
-Typing indicators, comment threads, Redis caching, search, and notifications are intentionally not implemented yet.
+### Week 3 Day 6-7
+
+Implemented card discussion collaboration:
+
+- Card-level comment thread schema
+- Comment list, create, edit, and soft-delete endpoints
+- Comment create, update, and delete realtime broadcasts
+- Card-level typing started and stopped socket events
+- Shared frontend event names for comment and typing updates
+
+Redis caching, search, and notifications are intentionally not implemented yet.
 
 ## Tech Stack
 
@@ -160,6 +170,10 @@ GET /api/boards/:boardId/cards
 POST /api/boards/:boardId/cards
 PATCH /api/boards/:boardId/cards/:cardId
 DELETE /api/boards/:boardId/cards/:cardId
+GET /api/boards/:boardId/cards/:cardId/comments
+POST /api/boards/:boardId/cards/:cardId/comments
+PATCH /api/boards/:boardId/cards/:cardId/comments/:commentId
+DELETE /api/boards/:boardId/cards/:cardId/comments/:commentId
 ```
 
 ## Validation

@@ -106,6 +106,36 @@ async function leaveBoardRoom(socket, boardId, acknowledge) {
   }
 }
 
+async function emitTypingEvent(socket, eventName, payload, acknowledge) {
+  try {
+    const { boardId, cardId } = payload || {};
+
+    if (!boardId || !cardId) {
+      return acknowledgeSafely(acknowledge, { ok: false, message: "Board id and card id are required" });
+    }
+
+    const board = await findAccessibleBoard(boardId, socket.user._id);
+
+    if (!board) {
+      return acknowledgeSafely(acknowledge, { ok: false, message: "Board not found or access denied" });
+    }
+
+    const roomName = getBoardRoomName(board._id);
+
+    socket.to(roomName).emit(eventName, {
+      boardId: board._id,
+      cardId,
+      userId: socket.user._id,
+      socketId: socket.id,
+      emittedAt: new Date().toISOString()
+    });
+
+    return acknowledgeSafely(acknowledge, { ok: true });
+  } catch (_error) {
+    return acknowledgeSafely(acknowledge, { ok: false, message: "Unable to emit typing status" });
+  }
+}
+
 function handleDisconnect(socket, reason) {
   const connection = activeConnections.get(socket.id);
 
@@ -146,6 +176,14 @@ export function registerSocketServer(httpServer) {
 
     socket.on("board:leave", (boardId, acknowledge) => {
       leaveBoardRoom(socket, boardId, acknowledge);
+    });
+
+    socket.on("comment:typing-started", (payload, acknowledge) => {
+      emitTypingEvent(socket, "comment:typing-started", payload, acknowledge);
+    });
+
+    socket.on("comment:typing-stopped", (payload, acknowledge) => {
+      emitTypingEvent(socket, "comment:typing-stopped", payload, acknowledge);
     });
 
     socket.on("disconnect", (reason) => {
