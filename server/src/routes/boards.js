@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import { Board, Workspace } from "../models/index.js";
 import { serializeBoard } from "../utils/boardAccess.js";
+import { deleteCacheByPrefix, getCache, setCache } from "../cache.js";
 
 export const boardsRouter = Router();
 
@@ -13,9 +14,19 @@ boardsRouter.get("/", async (req, res, next) => {
       $or: [{ owner: req.user._id }, { "members.user": req.user._id }]
     }).select("_id");
     const workspaceIds = workspaces.map((workspace) => workspace._id);
-    const boards = await Board.find({ workspace: { $in: workspaceIds } }).sort({ updatedAt: -1 });
+    const cacheKey = `boards:${req.user._id.toString()}`;
+    const cachedBoards = await getCache(cacheKey);
 
-    return res.json({ boards: boards.map(serializeBoard) });
+    if (cachedBoards) {
+      return res.json({ boards: cachedBoards, cached: true });
+    }
+
+    const boards = await Board.find({ workspace: { $in: workspaceIds } }).sort({ updatedAt: -1 });
+    const serializedBoards = boards.map(serializeBoard);
+
+    await setCache(cacheKey, serializedBoards, 45);
+
+    return res.json({ boards: serializedBoards, cached: false });
   } catch (error) {
     return next(error);
   }
@@ -52,6 +63,8 @@ boardsRouter.post("/", async (req, res, next) => {
       visibility,
       createdBy: req.user._id
     });
+
+    await deleteCacheByPrefix("boards:");
 
     return res.status(201).json({ board: serializeBoard(board) });
   } catch (error) {
