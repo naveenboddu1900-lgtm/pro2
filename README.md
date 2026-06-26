@@ -101,6 +101,39 @@ Implemented card discussion collaboration:
 
 Redis caching, search, and notifications are intentionally not implemented yet.
 
+### Week 4 Day 1-2
+
+Implemented search and in-app notifications:
+
+- Search endpoint across accessible workspaces, boards, lists, and cards
+- Notification model with unread tracking
+- Notification inbox endpoint
+- Mark-one and mark-all-read notification endpoints
+
+Redis caching, production security hardening, performance profiling, and deployment polish are intentionally not implemented yet.
+
+### Week 4 Day 3-5
+
+Added caching and profiling support:
+
+- Cache utility with TTL and in-memory fallback
+- Cached board list reads
+- Cache invalidation after board creation
+- Request timing middleware
+- Admin performance snapshot endpoint
+
+Production security hardening and deployment polish are intentionally not implemented yet.
+
+### Week 4 Day 6-7
+
+Completed final hardening and deployment polish:
+
+- Security headers middleware
+- Basic IP rate limiter
+- Deployment readiness endpoint
+- Deployment checklist document
+- Updated validation coverage for Week 4 files
+
 ## Tech Stack
 
 - Node.js
@@ -133,6 +166,7 @@ The server exposes a health endpoint at:
 
 ```text
 GET /health
+GET /ready
 ```
 
 Run the frontend:
@@ -155,6 +189,22 @@ GET /api/auth/me
 GET /api/workspaces
 POST /api/workspaces
 POST /api/workspaces/:workspaceId/invitations
+```
+
+### Search and Notification Endpoints
+
+```text
+GET /api/search?q=query
+GET /api/notifications
+GET /api/notifications?unread=true
+PATCH /api/notifications/:notificationId/read
+PATCH /api/notifications/read-all
+```
+
+### Admin Endpoint
+
+```text
+GET /api/admin/performance
 ```
 
 ### Board, List, and Card Endpoints
