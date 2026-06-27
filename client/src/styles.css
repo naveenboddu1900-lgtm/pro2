@@ -251,7 +251,8 @@ h2 {
 
 .board-card,
 .settings-panel,
-.kanban-section {
+.kanban-section,
+.realtime-panel {
   background: #ffffff;
   border: 1px solid #dce3ea;
   border-radius: 8px;
@@ -450,6 +451,60 @@ h2 {
   padding: 20px;
 }
 
+.realtime-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.socket-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.socket-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.event-log {
+  background: #f8fafc;
+  border: 1px solid #e5ebf0;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  max-height: 240px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.event-log p {
+  color: #6f7d8a;
+  margin: 0;
+}
+
+.event-row {
+  display: grid;
+  gap: 6px;
+}
+
+.event-row strong {
+  font-size: 13px;
+}
+
+.event-row code {
+  background: #ffffff;
+  border: 1px solid #e5ebf0;
+  border-radius: 8px;
+  color: #52606d;
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  padding: 8px;
+}
+
 .settings-header {
   justify-content: space-between;
   gap: 16px;
@@ -554,7 +609,8 @@ h2 {
   }
 
   .board-grid,
-  .settings-grid {
+  .settings-grid,
+  .socket-grid {
     grid-template-columns: 1fr;
   }
 

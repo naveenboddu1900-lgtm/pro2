@@ -1,8 +1,9 @@
-import { useMemo, useReducer } from "react";
+import { useMemo, useReducer, useRef, useState } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import {
   Bell,
   ChevronDown,
+  Radio,
   LayoutDashboard,
   PanelLeft,
   Plus,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { initialKanban, workspace } from "./data.js";
 import { createMoveOperation, getBoardMetrics, kanbanReducer } from "./kanbanState.js";
+import { bindBoardSocketEvents, createWorkspaceSocket, socketUrl } from "./socketClient.js";
 
 const navItems = [
   { label: "Boards", icon: LayoutDashboard, active: true },
@@ -186,6 +188,124 @@ function KanbanBoard() {
   );
 }
 
+function RealtimeSocketPanel() {
+  const socketRef = useRef(null);
+  const cleanupRef = useRef(null);
+  const [token, setToken] = useState("");
+  const [boardId, setBoardId] = useState("");
+  const [status, setStatus] = useState("Disconnected");
+  const [events, setEvents] = useState([]);
+
+  function addEvent(event) {
+    setEvents((current) => [event, ...current].slice(0, 8));
+  }
+
+  function connectSocket() {
+    if (!token.trim()) {
+      setStatus("Token required");
+      return;
+    }
+
+    cleanupRef.current?.();
+    socketRef.current?.disconnect();
+
+    const socket = createWorkspaceSocket(token.trim());
+    cleanupRef.current = bindBoardSocketEvents(socket, addEvent);
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      setStatus(`Connected ${socket.id}`);
+    });
+
+    socket.on("disconnect", (reason) => {
+      setStatus(`Disconnected: ${reason}`);
+    });
+
+    socket.connect();
+    setStatus("Connecting...");
+  }
+
+  function joinBoardRoom() {
+    if (!socketRef.current?.connected || !boardId.trim()) {
+      setStatus("Connect and enter a board id");
+      return;
+    }
+
+    socketRef.current.emit("board:join", boardId.trim(), (response) => {
+      addEvent({
+        name: "board:join:ack",
+        payload: response,
+        receivedAt: new Date().toISOString()
+      });
+    });
+  }
+
+  function sendTypingProbe(eventName) {
+    if (!socketRef.current?.connected || !boardId.trim()) {
+      setStatus("Connect and enter a board id");
+      return;
+    }
+
+    socketRef.current.emit(eventName, { boardId: boardId.trim(), cardId: "demo-card" }, (response) => {
+      addEvent({
+        name: `${eventName}:ack`,
+        payload: response,
+        receivedAt: new Date().toISOString()
+      });
+    });
+  }
+
+  return (
+    <section className="realtime-panel" aria-label="Socket.IO realtime panel">
+      <div className="section-header">
+        <div>
+          <h2>Socket.IO</h2>
+          <p>{socketUrl}</p>
+        </div>
+        <span className={status.startsWith("Connected") ? "sync-chip" : "sync-chip pending"}>{status}</span>
+      </div>
+
+      <div className="socket-grid">
+        <label className="field">
+          <span>Auth token</span>
+          <input value={token} onChange={(event) => setToken(event.target.value)} placeholder="Paste login token" />
+        </label>
+        <label className="field">
+          <span>Board id</span>
+          <input value={boardId} onChange={(event) => setBoardId(event.target.value)} placeholder="Mongo board id" />
+        </label>
+      </div>
+
+      <div className="socket-actions">
+        <button className="primary-button" type="button" onClick={connectSocket}>
+          <Radio size={17} aria-hidden="true" />
+          <span>Connect</span>
+        </button>
+        <button className="secondary-button" type="button" onClick={joinBoardRoom}>Join board</button>
+        <button className="secondary-button" type="button" onClick={() => sendTypingProbe("comment:typing-started")}>
+          Typing start
+        </button>
+        <button className="secondary-button" type="button" onClick={() => sendTypingProbe("comment:typing-stopped")}>
+          Typing stop
+        </button>
+      </div>
+
+      <div className="event-log">
+        {events.length === 0 ? (
+          <p>No socket events yet.</p>
+        ) : (
+          events.map((event) => (
+            <div className="event-row" key={`${event.name}-${event.receivedAt}`}>
+              <strong>{event.name}</strong>
+              <code>{JSON.stringify(event.payload)}</code>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
 function WorkspaceSettings() {
   return (
     <section className="settings-panel" aria-label="Workspace settings">
@@ -254,6 +374,7 @@ export function App() {
             </div>
           </section>
           <KanbanBoard />
+          <RealtimeSocketPanel />
           <WorkspaceSettings />
         </div>
       </main>

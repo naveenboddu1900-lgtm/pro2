@@ -141,6 +141,7 @@ Completed final hardening and deployment polish:
 - MongoDB
 - Mongoose
 - Socket.io
+- Socket.io Client
 
 ## Data Hierarchy
 
@@ -174,6 +175,8 @@ Run the frontend:
 ```bash
 npm run client:dev
 ```
+
+The frontend includes a Socket.IO panel for connecting with a login token, joining a board room, and testing comment typing events.
 
 ### Auth Endpoints
 

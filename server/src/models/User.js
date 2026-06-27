@@ -40,6 +40,4 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.index({ email: 1 }, { unique: true });
-
 export const User = models.User || model("User", userSchema);
