@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { initialKanban, workspace } from "./data.js";
 import { createMoveOperation, getBoardMetrics, kanbanReducer } from "./kanbanState.js";
+import { apiUrl, getHealth, getNotifications, loginUser, registerUser, searchWorkspace } from "./apiClient.js";
 import { bindBoardSocketEvents, createWorkspaceSocket, socketUrl } from "./socketClient.js";
 
 const navItems = [
@@ -188,10 +189,108 @@ function KanbanBoard() {
   );
 }
 
-function RealtimeSocketPanel() {
+function ApiWorkspacePanel({ authToken, onAuthToken }) {
+  const [mode, setMode] = useState("login");
+  const [form, setForm] = useState({
+    name: "Naveen Boddu",
+    email: "naveen@example.com",
+    password: "password123"
+  });
+  const [query, setQuery] = useState("board");
+  const [status, setStatus] = useState("Ready");
+  const [payload, setPayload] = useState(null);
+
+  function updateForm(field, value) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function runAction(action) {
+    try {
+      setStatus("Loading...");
+      const result = await action();
+      setPayload(result);
+      setStatus("Done");
+      return result;
+    } catch (error) {
+      setPayload({ message: error.message });
+      setStatus("Error");
+      return null;
+    }
+  }
+
+  async function submitAuth() {
+    const action = mode === "login" ? loginUser : registerUser;
+    const result = await runAction(() => action(form));
+
+    if (result?.token) {
+      onAuthToken(result.token);
+    }
+  }
+
+  return (
+    <section className="api-panel" aria-label="Backend API panel">
+      <div className="section-header">
+        <div>
+          <h2>Backend API</h2>
+          <p>{apiUrl}</p>
+        </div>
+        <span className={status === "Error" ? "sync-chip pending" : "sync-chip"}>{status}</span>
+      </div>
+
+      <div className="segmented-control" aria-label="Auth mode">
+        <button className={mode === "login" ? "active" : ""} type="button" onClick={() => setMode("login")}>Login</button>
+        <button className={mode === "register" ? "active" : ""} type="button" onClick={() => setMode("register")}>Register</button>
+      </div>
+
+      <div className="api-grid">
+        {mode === "register" && (
+          <label className="field">
+            <span>Name</span>
+            <input value={form.name} onChange={(event) => updateForm("name", event.target.value)} />
+          </label>
+        )}
+        <label className="field">
+          <span>Email</span>
+          <input value={form.email} onChange={(event) => updateForm("email", event.target.value)} />
+        </label>
+        <label className="field">
+          <span>Password</span>
+          <input type="password" value={form.password} onChange={(event) => updateForm("password", event.target.value)} />
+        </label>
+      </div>
+
+      <div className="socket-actions">
+        <button className="primary-button" type="button" onClick={submitAuth}>{mode === "login" ? "Login" : "Register"}</button>
+        <button className="secondary-button" type="button" onClick={() => runAction(getHealth)}>Health</button>
+        <button className="secondary-button" type="button" onClick={() => runAction(() => getNotifications(authToken))} disabled={!authToken}>
+          Notifications
+        </button>
+      </div>
+
+      <div className="api-search-row">
+        <label className="field">
+          <span>Search</span>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} />
+        </label>
+        <button className="secondary-button" type="button" onClick={() => runAction(() => searchWorkspace(query, authToken))} disabled={!authToken}>
+          Search
+        </button>
+      </div>
+
+      <div className="event-log">
+        <div className="event-row">
+          <strong>{authToken ? "Token ready" : "No token"}</strong>
+          <code>{payload ? JSON.stringify(payload) : "Run an API action to see the response."}</code>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RealtimeSocketPanel({ authToken }) {
   const socketRef = useRef(null);
   const cleanupRef = useRef(null);
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(authToken);
   const [boardId, setBoardId] = useState("");
   const [status, setStatus] = useState("Disconnected");
   const [events, setEvents] = useState([]);
@@ -201,7 +300,9 @@ function RealtimeSocketPanel() {
   }
 
   function connectSocket() {
-    if (!token.trim()) {
+    const selectedToken = (token || authToken || "").trim();
+
+    if (!selectedToken) {
       setStatus("Token required");
       return;
     }
@@ -209,7 +310,7 @@ function RealtimeSocketPanel() {
     cleanupRef.current?.();
     socketRef.current?.disconnect();
 
-    const socket = createWorkspaceSocket(token.trim());
+    const socket = createWorkspaceSocket(selectedToken);
     cleanupRef.current = bindBoardSocketEvents(socket, addEvent);
     socketRef.current = socket;
 
@@ -268,7 +369,7 @@ function RealtimeSocketPanel() {
       <div className="socket-grid">
         <label className="field">
           <span>Auth token</span>
-          <input value={token} onChange={(event) => setToken(event.target.value)} placeholder="Paste login token" />
+          <input value={token || authToken} onChange={(event) => setToken(event.target.value)} placeholder="Login token fills here" />
         </label>
         <label className="field">
           <span>Board id</span>
@@ -357,6 +458,8 @@ function WorkspaceSettings() {
 }
 
 export function App() {
+  const [authToken, setAuthToken] = useState("");
+
   return (
     <div className="app-shell">
       <Sidebar />
@@ -373,8 +476,9 @@ export function App() {
               <span>{initialKanban.listOrder.length} lists</span>
             </div>
           </section>
+          <ApiWorkspacePanel authToken={authToken} onAuthToken={setAuthToken} />
           <KanbanBoard />
-          <RealtimeSocketPanel />
+          <RealtimeSocketPanel authToken={authToken} />
           <WorkspaceSettings />
         </div>
       </main>
