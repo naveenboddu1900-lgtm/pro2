@@ -22,9 +22,9 @@ const navItems = [
   { label: "Settings", icon: Settings }
 ];
 
-function Sidebar() {
+function Sidebar({ isOpen = false, onClose }) {
   return (
-    <aside className="sidebar">
+    <aside className={isOpen ? "sidebar is-open" : "sidebar"} aria-label="Primary navigation">
       <div className="brand-row">
         <div className="brand-mark">P2</div>
         <div>
@@ -50,17 +50,20 @@ function Sidebar() {
           );
         })}
       </nav>
+
+      <button className="secondary-button mobile-close" type="button" onClick={onClose}>Close menu</button>
     </aside>
   );
 }
 
-function Topbar() {
+function Topbar({ onOpenSidebar }) {
   return (
     <header className="topbar">
-      <button className="icon-button mobile-only" type="button" aria-label="Open sidebar">
+      <button className="icon-button mobile-only" type="button" aria-label="Open sidebar" onClick={onOpenSidebar}>
         <PanelLeft size={19} />
       </button>
       <label className="search-box">
+        <span className="sr-only">Search boards, cards, and members</span>
         <Search size={17} aria-hidden="true" />
         <input placeholder="Search boards, cards, members" />
       </label>
@@ -116,13 +119,13 @@ function KanbanBoard() {
   }
 
   return (
-    <section className="kanban-section" aria-label="Sprint board">
+    <section className="kanban-section" aria-labelledby="sprint-board-heading">
       <div className="section-header">
         <div>
-          <h2>Sprint Board</h2>
+          <h2 id="sprint-board-heading">Sprint Board</h2>
           <p>Card moves update instantly while confirmation is pending.</p>
         </div>
-        <div className="board-metrics" aria-label="Board state">
+        <div className="board-metrics" aria-label="Board state" aria-live="polite">
           <span>{metrics.totalCards} cards</span>
           <span>{metrics.totalPoints} pts</span>
           <span className={kanban.pendingOperations.length > 0 ? "sync-chip pending" : "sync-chip"}>{syncLabel}</span>
@@ -139,11 +142,12 @@ function KanbanBoard() {
                 {(provided, snapshot) => (
                   <article
                     className={snapshot.isDraggingOver ? "kanban-list is-over" : "kanban-list"}
+                    aria-labelledby={`${list.id}-heading`}
                     ref={provided.innerRef}
                     {...provided.droppableProps}
                   >
                     <div className="kanban-list-header">
-                      <h3>{list.title}</h3>
+                      <h3 id={`${list.id}-heading`}>{list.title}</h3>
                       <span>{list.cardIds.length}</span>
                     </div>
 
@@ -161,6 +165,7 @@ function KanbanBoard() {
                                   cardSnapshot.isDragging ? "is-dragging" : "",
                                   isPending ? "is-pending" : ""
                                 ].filter(Boolean).join(" ")}
+                                aria-label={`${card.title}, ${card.priority} priority, ${card.points} points, assigned to ${card.owner}`}
                                 ref={cardProvided.innerRef}
                                 {...cardProvided.draggableProps}
                                 {...cardProvided.dragHandleProps}
@@ -228,13 +233,13 @@ function ApiWorkspacePanel({ authToken, onAuthToken }) {
   }
 
   return (
-    <section className="api-panel" aria-label="Backend API panel">
+    <section className="api-panel" aria-labelledby="backend-api-heading">
       <div className="section-header">
         <div>
-          <h2>Backend API</h2>
+          <h2 id="backend-api-heading">Backend API</h2>
           <p>{apiUrl}</p>
         </div>
-        <span className={status === "Error" ? "sync-chip pending" : "sync-chip"}>{status}</span>
+        <span className={status === "Error" ? "sync-chip pending" : "sync-chip"} role="status" aria-live="polite">{status}</span>
       </div>
 
       <div className="segmented-control" aria-label="Auth mode">
@@ -245,17 +250,17 @@ function ApiWorkspacePanel({ authToken, onAuthToken }) {
       <div className="api-grid">
         {mode === "register" && (
           <label className="field">
-            <span>Name</span>
-            <input value={form.name} onChange={(event) => updateForm("name", event.target.value)} />
+          <span>Name</span>
+            <input autoComplete="name" value={form.name} onChange={(event) => updateForm("name", event.target.value)} />
           </label>
         )}
         <label className="field">
           <span>Email</span>
-          <input value={form.email} onChange={(event) => updateForm("email", event.target.value)} />
+          <input autoComplete="email" type="email" value={form.email} onChange={(event) => updateForm("email", event.target.value)} />
         </label>
         <label className="field">
           <span>Password</span>
-          <input type="password" value={form.password} onChange={(event) => updateForm("password", event.target.value)} />
+          <input autoComplete={mode === "login" ? "current-password" : "new-password"} type="password" value={form.password} onChange={(event) => updateForm("password", event.target.value)} />
         </label>
       </div>
 
@@ -280,7 +285,7 @@ function ApiWorkspacePanel({ authToken, onAuthToken }) {
       <div className="event-log">
         <div className="event-row">
           <strong>{authToken ? "Token ready" : "No token"}</strong>
-          <code>{payload ? JSON.stringify(payload) : "Run an API action to see the response."}</code>
+          <code aria-live="polite">{payload ? JSON.stringify(payload) : "Run an API action to see the response."}</code>
         </div>
       </div>
     </section>
@@ -357,13 +362,13 @@ function RealtimeSocketPanel({ authToken }) {
   }
 
   return (
-    <section className="realtime-panel" aria-label="Socket.IO realtime panel">
+    <section className="realtime-panel" aria-labelledby="socket-heading">
       <div className="section-header">
         <div>
-          <h2>Socket.IO</h2>
+          <h2 id="socket-heading">Socket.IO</h2>
           <p>{socketUrl}</p>
         </div>
-        <span className={status.startsWith("Connected") ? "sync-chip" : "sync-chip pending"}>{status}</span>
+        <span className={status.startsWith("Connected") ? "sync-chip" : "sync-chip pending"} role="status" aria-live="polite">{status}</span>
       </div>
 
       <div className="socket-grid">
@@ -391,7 +396,7 @@ function RealtimeSocketPanel({ authToken }) {
         </button>
       </div>
 
-      <div className="event-log">
+      <div className="event-log" aria-live="polite">
         {events.length === 0 ? (
           <p>No socket events yet.</p>
         ) : (
@@ -409,10 +414,10 @@ function RealtimeSocketPanel({ authToken }) {
 
 function WorkspaceSettings() {
   return (
-    <section className="settings-panel" aria-label="Workspace settings">
+    <section className="settings-panel" aria-labelledby="workspace-settings-heading">
       <div className="settings-header">
         <div>
-          <h2>Workspace Settings</h2>
+          <h2 id="workspace-settings-heading">Workspace Settings</h2>
           <p>{workspace.members} members - {workspace.visibility} visibility - {workspace.plan} plan</p>
         </div>
         <button className="secondary-button" type="button">Save changes</button>
@@ -459,13 +464,16 @@ function WorkspaceSettings() {
 
 export function App() {
   const [authToken, setAuthToken] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="app-shell">
-      <Sidebar />
-      <main className="main-area">
-        <Topbar />
-        <div className="content">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      {isSidebarOpen && <button className="sidebar-backdrop" type="button" aria-label="Close sidebar" onClick={() => setIsSidebarOpen(false)} />}
+      <main className="main-area" id="main-content" tabIndex="-1">
+        <Topbar onOpenSidebar={() => setIsSidebarOpen(true)} />
+        <div className="content" aria-label="Workspace dashboard">
           <section className="workspace-heading">
             <div>
               <p className="eyebrow">Week 2 - Day 7</p>

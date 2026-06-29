@@ -2,10 +2,12 @@ const rateLimitBuckets = new Map();
 const WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS = 120;
 
-const allowedOrigins = new Set([
-  "http://localhost:5173",
-  "http://127.0.0.1:5173"
-]);
+const allowedOrigins = new Set(
+  (process.env.CLIENT_ORIGINS || "http://localhost:5173,http://127.0.0.1:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+);
 
 export function securityHeaders(req, res, next) {
   const origin = req.get("origin");

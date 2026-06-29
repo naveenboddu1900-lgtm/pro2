@@ -14,6 +14,10 @@ body {
   min-width: 320px;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 button,
 input,
 select {
@@ -22,6 +26,45 @@ select {
 
 button {
   cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+.sr-only {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.skip-link {
+  background: #ffffff;
+  border: 2px solid #2563eb;
+  border-radius: 8px;
+  color: #17202a;
+  font-weight: 800;
+  left: 16px;
+  padding: 10px 12px;
+  position: fixed;
+  top: 12px;
+  transform: translateY(-140%);
+  transition: transform 160ms ease;
+  z-index: 20;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 .app-shell {
@@ -37,6 +80,11 @@ button {
   flex-direction: column;
   gap: 22px;
   padding: 24px 18px;
+}
+
+.sidebar-backdrop,
+.mobile-close {
+  display: none;
 }
 
 .brand-row {
@@ -87,6 +135,14 @@ button {
   width: 100%;
 }
 
+.workspace-switcher span,
+.nav-item span,
+.primary-button span,
+.secondary-button,
+.text-button {
+  overflow-wrap: anywhere;
+}
+
 .workspace-switcher {
   background: #24313d;
   color: #f7fafc;
@@ -121,6 +177,9 @@ button {
   gap: 16px;
   min-height: 72px;
   padding: 14px 28px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 .search-box {
@@ -198,6 +257,7 @@ button {
   margin: 0 auto;
   max-width: 1180px;
   padding: 28px;
+  width: 100%;
 }
 
 .workspace-heading {
@@ -229,6 +289,7 @@ h2 {
 }
 
 .status-pills {
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -353,6 +414,7 @@ h2 {
   grid-template-columns: repeat(4, minmax(220px, 1fr));
   overflow-x: auto;
   padding-bottom: 4px;
+  scrollbar-color: #b8c4cf #f4f6f8;
 }
 
 .kanban-list {
@@ -414,6 +476,11 @@ h2 {
   min-height: 104px;
   padding: 12px;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.task-card:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
 }
 
 .task-card.is-dragging {
@@ -586,7 +653,9 @@ button:disabled {
   border: 1px solid #cbd5df;
   border-radius: 8px;
   min-height: 42px;
+  min-width: 0;
   padding: 0 12px;
+  width: 100%;
 }
 
 .toggle-row {
@@ -652,7 +721,38 @@ button:disabled {
   }
 
   .sidebar {
-    display: none;
+    bottom: 0;
+    box-shadow: 18px 0 36px rgba(23, 32, 42, 0.24);
+    display: flex;
+    left: 0;
+    max-width: 86vw;
+    position: fixed;
+    top: 0;
+    transform: translateX(-105%);
+    transition: transform 180ms ease;
+    width: 280px;
+    z-index: 15;
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    background: rgba(23, 32, 42, 0.42);
+    border: 0;
+    bottom: 0;
+    display: block;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 14;
+  }
+
+  .mobile-close {
+    display: inline-flex;
+    margin-top: auto;
   }
 
   .mobile-only {
@@ -677,6 +777,7 @@ button:disabled {
 
 @media (max-width: 640px) {
   .topbar {
+    gap: 10px;
     padding: 12px;
   }
 
@@ -701,5 +802,41 @@ button:disabled {
 
   .list-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .socket-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .icon-button,
+  .primary-button,
+  .secondary-button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .search-box {
+    min-width: 0;
+  }
+
+  .workspace-heading {
+    gap: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
